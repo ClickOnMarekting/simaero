@@ -25,6 +25,33 @@ select:disabled {
 }
 </style>
 
+<style>
+/* 300ms ease-in slide-from-bottom + fade */
+.field-animated {
+  opacity: 0;
+  transform: translateY(16px);
+  max-height: 0;           /* collapses space when hidden */
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+  display: none;
+}
+.field-animated.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 200px;       /* big enough for a select + label */
+  pointer-events: auto;
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+  display: block;
+}
+
+/* Optional: basic disabled look for trainingCentre when not ready */
+select:disabled {
+  background-color: #f2f2f2;
+  color: #888;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const trainingCourse  = document.getElementById('trainingCourse');
@@ -37,14 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Store the original trainingCentre options so we can restore them
+  // Save original trainingCentre options (HTML defaults)
   const defaultTrainingCentreOptions = Array.from(trainingCentre.options).map(opt => ({
     value: opt.value,
     text: opt.text
   }));
 
-  [aircraftType, modelSelect].forEach(el => el.classList.add('field-animated'));
+  [aircraftType, modelSelect].forEach(el => el.classList.add('slide-fade'));
 
+  // Data for aircraft flow
   const aircraftOptions = {
     Airbus: ["A320", "A320 NEO", "A330", "A340", "A350"],
     ATR: ["ATR 72-500", "ATR 72-600"],
@@ -66,21 +94,26 @@ document.addEventListener('DOMContentLoaded', () => {
     "B767": ["Paris"],
     "B777": ["Paris"],
     "B787": ["Paris"],
-    "Beechcraft 1900D": ["Paris", "Zhengzhou"],
+    "Beechcraft 1900D": ["Johannesburg"],
     "CRJ 200-700": ["Johannesburg"],
     "Dash 8": ["Johannesburg"],
     "Embraer E190": ["Johannesburg"],
     "E190": ["Johannesburg"],
     "Embraer ERJ 145": ["Johannesburg"],
+    "MD 82": []
   };
 
-  const getSelectedText = (sel) => sel.options[sel.selectedIndex]?.text?.trim() || '';
-  const isTypeRatingSelected = () => {
-    const val = (trainingCourse.value || '').trim();
-    const label = getSelectedText(trainingCourse);
-    return val === 'Type Rating Training' || label === 'Type Rating Training';
+  // New mapping: direct course -> trainingCentre
+  const centresByCourse = {
+    "CCQ": ["Paris"],
+    "TBM Training": ["Paris"],
+    "MCC Course": ["Paris"],
+    "Instructor & Examiner Courses": ["Paris", "Johannesburg"],
+    "Difference Courses": ["Paris", "Johannesburg"],
+    "Operational Courses": ["Paris", "Johannesburg"]
   };
 
+  // Helpers
   function populateSelect(selectEl, options, placeholder = 'Select an option') {
     selectEl.innerHTML = '';
     const ph = document.createElement('option');
@@ -109,31 +142,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showField(el) {
+    el.style.display = 'block';
     void el.offsetWidth;
-    el.classList.add('is-visible');
+    el.classList.add('show');
     el.disabled = false;
   }
 
   function hideField(el) {
-    el.classList.remove('is-visible');
-    el.disabled = true;
+    el.classList.remove('show');
+    setTimeout(() => {
+      el.style.display = 'none';
+      el.disabled = true;
+    }, 300);
   }
 
+  // Logic when trainingCourse changes
   function onTrainingCourseChange() {
-    if (isTypeRatingSelected()) {
+    const course = trainingCourse.value.trim();
+
+    if (course === "Type Rating Training") {
+      // Normal aircraft flow
       populateSelect(aircraftType, Object.keys(aircraftOptions), 'Select aircraft type');
       showField(aircraftType);
       populateSelect(modelSelect, [], 'Select a model');
       hideField(modelSelect);
       populateSelect(trainingCentre, [], 'Select a training centre');
       trainingCentre.disabled = true;
-    } else {
+    } 
+    else if (centresByCourse[course]) {
+      // Direct course -> centre flow
+      hideField(aircraftType);
+      hideField(modelSelect);
+      populateSelect(trainingCentre, centresByCourse[course], 'Select a training centre');
+      trainingCentre.disabled = false;
+    } 
+    else {
+      // Restore defaults for all other courses
       hideField(aircraftType);
       hideField(modelSelect);
       restoreTrainingCentreDefaults();
     }
   }
 
+  // Aircraft type change
   function onAircraftTypeChange() {
     const type = aircraftType.value;
     if (type && aircraftOptions[type]) {
@@ -147,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Model change
   function onModelChange() {
     const model = modelSelect.value;
     const centres = centresByModel[model] || [];
@@ -159,18 +211,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Events
   trainingCourse.addEventListener('change', onTrainingCourseChange);
   aircraftType.addEventListener('change', onAircraftTypeChange);
   modelSelect.addEventListener('change', onModelChange);
 
-  // Initial page load setup
-  if (isTypeRatingSelected()) {
-    populateSelect(aircraftType, Object.keys(aircraftOptions), 'Select aircraft type');
-    showField(aircraftType);
-  } else {
-    hideField(aircraftType);
-    hideField(modelSelect);
-    restoreTrainingCentreDefaults();
-  }
+  // Initial setup
+  onTrainingCourseChange();
 });
 </script>
