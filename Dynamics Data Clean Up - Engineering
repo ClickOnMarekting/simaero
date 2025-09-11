@@ -1,0 +1,18 @@
+let engineering = inputData.engineering;
+
+// Mapping table
+
+const engineeringService = {
+    "Upgrade": "948140000",
+    "Relocation": "948140001",
+    "Trading and Parts": "948140002",
+    "Other": "948140003"
+  };
+
+
+// Replace value if match found, otherwise keep original
+let mappedValueService = engineeringService[engineering] || engineering;
+
+// Output for Zapier
+output = { 
+  mappedValueService: engineeringService };
