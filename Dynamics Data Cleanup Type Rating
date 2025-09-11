@@ -1,0 +1,61 @@
+let aircraft = inputData.aircraft;
+let manufacturer = inputData.manufacturer;
+let courseType = inputData.courseType;
+let location = inputData.location;
+
+// Mapping table
+const aircraftMap = {
+  "A320": "948140000",
+  "A320 NEO": "948140001",
+  "A330": "948140002",
+  "A340": "948140003",
+  "A350": "948140004",
+  "ATR 42-500": "948140005",
+  "ATR 72-500": "948140006",
+  "B737 CL": "948140007",
+  "B737 NG": "948140008",
+  "B757": "948140009",
+  "B777": "948140010",
+  "B787": "948140011",
+  "Beechcraft 1900D": "948140012",
+  "CRJ 200-700": "948140013",
+  "Dash 8": "948140014",
+  "Embraer 190": "948140015",
+  "ERJ 145": "948140016",
+  "MD 82": "948140017"
+};
+
+const manufacturerMap = {
+    "Airbus": "948140000",
+    "ATR": "948140001",
+    "Boeing": "948140002",
+    "Other": "948140003"
+  };
+
+const courseTypeMap = {
+    "Type-Rating": "948140000",
+    "CCQ / Diff Course": "948140001",
+    "Instructor and Examiner Course": "948140002",
+    "MCC": "948140003",
+    "Operational Course": "948140004",
+    "E-learning": "948140005",
+    "TBM": "948140006"
+  };
+ const locationList = {
+    "Paris": "948140000",
+    "Changsha": "948140001",
+    "Delhi": "948140002",
+    "Johannesburg": "948140003"
+  };
+// Replace value if match found, otherwise keep original
+let mappedValueAircraft = aircraftMap[aircraft] || aircraft;
+let mappedValueManufacturer = manufacturerMap[manufacturer] || manufacturer;
+let mappedValueCourseType = courseTypeMap[courseType] || courseType;
+let mappedValuelocation = locationList[location] || location;
+
+// Output for Zapier
+output = { 
+  mappedAircraft: mappedValueAircraft, 
+  manufacturerMap: mappedValueManufacturer,
+  courseTypeMap: mappedValueCourseType, 
+  locationList: mappedValuelocation  };
